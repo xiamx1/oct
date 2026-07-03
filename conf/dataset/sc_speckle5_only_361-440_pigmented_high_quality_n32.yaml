@@ -1,8 +1,8 @@
 # @package _group_
 name: sc_dataset.OCTSchlemmsCanalDataset
 params:
-  root_dir: /home/kevin/Projects/oct_sc_segmentation/data_root/sc_datasets/sc_speckle5_361-440_pigmented_high_quality_n32
-  fp: /home/kevin/Projects/oct_sc_segmentation/OCT-SchlemmsCanal-Seg/sc_data_master.csv
+  root_dir: data/mouse_schlemm_sv5_361x440_8bit
+  fp: data/sc_data_master.csv
   max_iop:
 transform: True
 mean:

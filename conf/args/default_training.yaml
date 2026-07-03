@@ -3,7 +3,7 @@ debug: False
 seed: 1
 num_gpu: 2
 
-save_root: '/home/kevin/Projects/oct_sc_segmentation/experiments_5'
+save_root: 'experiments'
 experiment: 'experiment'
 description:
 
@@ -15,7 +15,7 @@ batch_size: 2
 num_workers: 0
 use_scheduler: True
 data_parallel: False
-tensorboard: True
+tensorboard: False
 device: 'cuda:0'
 input_features:
   - 'image'

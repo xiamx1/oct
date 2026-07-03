@@ -103,11 +103,19 @@ class OCTSchlemmsCanalDataset(Dataset):
                     }
 
         img_path = os.path.join(image_path, 'average', sample_name + '-Average.tif')
-        image = io.imread(img_path)
         sv_path = os.path.join(image_path, 'speckled_var', sample_name + '-SpeckledVar.tif')
-        speckled_var = io.imread(sv_path)
         mask_path = os.path.join(image_path, 'mask', sample_name + '-Mask.tif')
-        mask = io.imread(mask_path)
+        
+        try:
+            image = io.imread(img_path)
+            speckled_var = io.imread(sv_path)
+            mask = io.imread(mask_path)
+        except Exception as e:
+            print(f"Error reading {sample_name}: {e}")
+            print(f"  Image path: {img_path}")
+            print(f"  Speckled var path: {sv_path}")
+            print(f"  Mask path: {mask_path}")
+            raise
 
         sample = {'image': image, 'speckled_var': speckled_var, 'mask': mask, 'metadata': metadata}
 

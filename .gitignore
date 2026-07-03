@@ -109,3 +109,8 @@ venv.bak/
 
 
 .idea
+
+
+#新加的忽略目录（xmx加的)
+outputs/
+runs/

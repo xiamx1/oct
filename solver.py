@@ -22,7 +22,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingWarmResta
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.utils import save_image
-from torch.utils.tensorboard import SummaryWriter
+# TensorBoard SummaryWriter imported conditionally later
 from sklearn.model_selection import train_test_split, KFold
 
 from data_augmentation import SelectKeys, RandomCrop, ToPILImage, RandomHorizontalFlip, RandomScale, RandomTranslate, \
@@ -229,7 +229,7 @@ def main(cfg: DictConfig):
     util.mkdir(experiment_dir)
 
     with open(os.path.join(experiment_dir, 'config.yaml'), 'w') as f:
-        f.write(cfg.pretty())
+        f.write(OmegaConf.to_yaml(cfg))
 
     # === Define Image Transforms ===
     # input image is 460 x 381 (width x height)
@@ -371,8 +371,11 @@ def main(cfg: DictConfig):
             scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=20, T_mult=2)
             # scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=3)
 
-        writer = SummaryWriter(
-            os.path.join(experiment_dir, 'runs', '{:02d}'.format(fold))) if args.tensorboard else None
+        if args.tensorboard:
+            from torch.utils.tensorboard import SummaryWriter
+            writer = SummaryWriter(os.path.join(experiment_dir, 'runs', '{:02d}'.format(fold)))
+        else:
+            writer = None
 
         val_loss_best = 1
         val_loss_last_20 = 1
