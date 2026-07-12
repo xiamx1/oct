@@ -159,11 +159,11 @@ class ToPILImage(object):
         metadata = sample.pop('metadata')
 
         for key, image in sample.items():
-            # transformed_sample[key] = TF.to_pil_image(image.astype('float32'))
-            # image = image.astype('uint8')
-            transformed_sample[key] = TF.to_pil_image(image.astype('float32'))
-            # transformed_sample[key] = TF.to_pil_image(image.astype('uint8'))
-            # transformed_sample[key] = TF.to_pil_image(image)
+            # mask是uint8 {0,255}, 直接转PIL保持原值; 图像需经过float32归一化
+            if key == 'mask':
+                transformed_sample[key] = TF.to_pil_image(image)
+            else:
+                transformed_sample[key] = TF.to_pil_image(image.astype('float32'))
         transformed_sample['metadata'] = metadata
         return transformed_sample
 
