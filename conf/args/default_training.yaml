@@ -16,6 +16,8 @@ num_workers: 0
 use_scheduler: True
 data_parallel: False
 tensorboard: False
+early_stop: True
+early_stop_patience: 20
 device: 'cuda:0'
 input_features:
   - 'image'
