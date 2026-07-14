@@ -1,0 +1,22 @@
+# @package _group_
+debug: False
+seed: 1
+num_gpu: 1
+
+save_root: 'experiments'
+experiment: 'experiment'
+description:
+
+start_fold:
+load_checkpoint:
+start_epoch: 1
+num_epochs: 200
+batch_size: 32
+num_workers: 4
+use_scheduler: True
+data_parallel: False
+tensorboard: False
+device: 'cuda:0'
+input_features:
+  - 'image'
+  - 'speckled_var'
