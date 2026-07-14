@@ -388,7 +388,7 @@ def main(cfg: DictConfig):
         #########################
         # --- Training Loop --- #
         #########################
-        for epoch in range(args.start_epoch, num_epochs + 1):
+        for epoch in range(1, num_epochs + 1):
             start_time = time.time()
             epoch_save_dir = os.path.join(segmentation_dir, str(epoch))
 
