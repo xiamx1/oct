@@ -16,8 +16,6 @@ num_workers: 0
 use_scheduler: True
 data_parallel: False
 tensorboard: False
-early_stop: True
-early_stop_patience: 20
 amp: False
 gradient_accumulation_steps: 1
 device: 'cuda:0'

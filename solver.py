@@ -401,7 +401,6 @@ def main(cfg: DictConfig):
 
         val_loss_best = 1
         val_loss_last_20 = 1
-        early_stop_counter = 0
 
         # AMP scaler + 梯度累积
         scaler = GradScaler() if getattr(args, 'amp', False) else None
@@ -462,17 +461,6 @@ def main(cfg: DictConfig):
 
             elapsed_time = time.time() - start_time
             print('elapsed time: {}'.format(elapsed_time))
-
-            # Early Stopping
-            if args.early_stop:
-                if val_loss >= val_loss_best:
-                    early_stop_counter += 1
-                    if early_stop_counter >= args.early_stop_patience:
-                        print('Early stopping at epoch {} (val_loss not improved for {} epochs)'.format(
-                            epoch, early_stop_counter))
-                        break
-                else:
-                    early_stop_counter = 0
 
             with open(os.path.join(save_dir, 'results.csv'), 'a') as f:
                 f.write("{},{},{},{},{},{},{},{}\n".format(
