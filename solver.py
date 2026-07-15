@@ -21,6 +21,7 @@ import datetime
 import torch
 import torch.nn as nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingWarmRestarts, MultiStepLR
+from torch.cuda.amp import autocast, GradScaler
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.utils import save_image
@@ -50,27 +51,43 @@ def flatten(t):
     return [item for sublist in t for item in sublist]
 
 
-def train(model, device, train_loader, criterion, optimizer, epoch, scheduler=None):
+def train(model, device, train_loader, criterion, optimizer, epoch, scheduler=None, scaler=None, grad_accum=1):
     model.train()
     train_loss = 0
+    optimizer.zero_grad(set_to_none=True)
+
     for batch_idx, sample in enumerate(train_loader):
         data = sample['inputs']  # [N, 2, H, W]
         mask = sample['mask']  # [N, H, W]
         data, mask = data.to(device).float(), mask.to(device).float()
-        # plot_vis(mask, win=implot_out, opts={'caption': 'output'})
 
-        optimizer.zero_grad(set_to_none=True)
-        output = model(data)
-        # output = torch.sigmoid(output)
-        loss = criterion(output, mask.unsqueeze(1))
-        # loss = criterion(output.squeeze(1), mask)
-        loss.backward()
-        optimizer.step()
-        if isinstance(scheduler, CosineAnnealingWarmRestarts):
-            scheduler.step()
-            # print(scheduler.get_lr())
+        # AMP autocast: 前向传播自动混合精度
+        with autocast(enabled=(scaler is not None)):
+            output = model(data)
+            loss = criterion(output, mask.unsqueeze(1))
+            loss = loss / grad_accum  # 梯度累积时归一化
 
-        train_loss += loss.cpu().detach().item()
+        # 反向传播: AMP模式下用scaler缩放梯度
+        if scaler is not None:
+            scaler.scale(loss).backward()
+        else:
+            loss.backward()
+
+        # 累积够grad_accum步才更新权重
+        if (batch_idx + 1) % grad_accum == 0:
+            if scaler is not None:
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                optimizer.step()
+            optimizer.zero_grad(set_to_none=True)
+
+            # CosineAnnealingWarmRestarts 在每次optimizer.step后调用
+            if isinstance(scheduler, CosineAnnealingWarmRestarts):
+                scheduler.step()
+
+        # loss记录用去归一化的值
+        train_loss += (loss * grad_accum).cpu().detach().item()
         if batch_idx % (len(train_loader) // 3) == 0:
             print('Train({})[{:.0f}%]: Loss: {:.4f}'.format(
                 epoch, 100. * batch_idx / len(train_loader), train_loss / (batch_idx + 1)))
@@ -386,6 +403,10 @@ def main(cfg: DictConfig):
         val_loss_last_20 = 1
         early_stop_counter = 0
 
+        # AMP scaler + 梯度累积
+        scaler = GradScaler() if getattr(args, 'amp', False) else None
+        grad_accum = getattr(args, 'gradient_accumulation_steps', 1)
+
         dice_threshold = 0
         with open(os.path.join(save_dir, 'results.csv'), 'w') as f:
             f.write('epoch,train_loss,val_loss,test_dice,test_precision,test_recall,elapsed_time,lr\n')
@@ -397,7 +418,8 @@ def main(cfg: DictConfig):
             start_time = time.time()
             epoch_save_dir = os.path.join(segmentation_dir, str(epoch))
 
-            train_loss = train(model, device, train_loader, criterion, optimizer, epoch, scheduler=scheduler)
+            train_loss = train(model, device, train_loader, criterion, optimizer, epoch,
+                              scheduler=scheduler, scaler=scaler, grad_accum=grad_accum)
             val_loss = validation(model, device, valid_loader, criterion, epoch, writer=writer)
             test_dice, test_precision, test_recall = evaluate(model, device, test_loader, epoch, writer=writer)
 
