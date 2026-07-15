@@ -18,6 +18,7 @@ data_parallel: False
 tensorboard: False
 amp: False
 gradient_accumulation_steps: 1
+checkpoint_epochs: [1, 50, 100, 150, 200]
 device: 'cuda:0'
 input_features:
   - 'image'

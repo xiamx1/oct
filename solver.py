@@ -446,7 +446,7 @@ def main(cfg: DictConfig):
                 util.save_checkpoint(model, optimizer, epoch, fn, train_loss, test_dice)
                 val_loss_last_20 = val_loss
 
-            if epoch in [1, 3, 6, 10, 60, 100, 120, 150, 180, 200, num_epochs]:
+            if epoch in args.checkpoint_epochs or epoch == num_epochs:
                 print('Saving checkpoint...')
                 fn = os.path.join(saved_models_dir, 'ckpt_state_epoch_{}.tar'.format(epoch))
                 util.save_checkpoint(model, optimizer, epoch, fn, train_loss, test_dice)
