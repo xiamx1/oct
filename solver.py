@@ -7,6 +7,8 @@ DOI: 10.1016/j.exer.2021.108844
 The data and software here are only for research purposes. For licensing, please contact Duke University's Office of
 Licensing & Ventures (OLV). Please cite our corresponding paper if you use this material in any form. You may not
 redistribute our material without our written permission. """
+import matplotlib
+matplotlib.use('Agg')  # 非交互后端，不用显示也能保存图片
 
 import glob
 import os
