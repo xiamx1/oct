@@ -342,7 +342,10 @@ def main(cfg: DictConfig):
         # Initialize model
         model = load_model(cfg.model)
         if args.load_checkpoint is not None:
-            model_path = os.path.join(best_models_dir, 'best_model.tar')
+            if isinstance(args.load_checkpoint, str) and args.load_checkpoint:
+                model_path = args.load_checkpoint
+            else:
+                model_path = os.path.join(best_models_dir, 'best_model.tar')
             checkpoint = torch.load(model_path)
             model.load_state_dict(checkpoint['model_state_dict'])  # Loading
 
@@ -465,11 +468,13 @@ def main(cfg: DictConfig):
         evaluate(model, device, test_loader, checkpoint['epoch'],
                  save_dir=os.path.join(segmentation_dir, 'best_val_loss'), orig_shape=cfg.dataset.image_size)
 
-        checkpoint = torch.load(os.path.join(best_models_dir, 'model_best_val_loss_last20.tar'))
-        model = load_saved_model(model=model, checkpoint=checkpoint['model_state_dict'],
-                                 data_parallel=args.data_parallel, device=args.device)
-        evaluate(model, device, test_loader, checkpoint['epoch'],
-                 save_dir=os.path.join(segmentation_dir, 'best_val_loss_last_20'), orig_shape=cfg.dataset.image_size)
+        last20_path = os.path.join(best_models_dir, 'model_best_val_loss_last20.tar')
+        if os.path.exists(last20_path):
+            checkpoint = torch.load(last20_path)
+            model = load_saved_model(model=model, checkpoint=checkpoint['model_state_dict'],
+                                     data_parallel=args.data_parallel, device=args.device)
+            evaluate(model, device, test_loader, checkpoint['epoch'],
+                     save_dir=os.path.join(segmentation_dir, 'best_val_loss_last_20'), orig_shape=cfg.dataset.image_size)
 
         if writer:
             writer.close()  # close tensorboard
