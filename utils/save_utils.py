@@ -188,6 +188,9 @@ def load_results(experiment_dir, verbose=False):
 
 def calculate_performance(experiment_dir):
     fold_data = sorted(glob.glob(os.path.join(experiment_dir, 'segmentation', '**', 'best_val_loss_last_20', 'metrics.csv')))
+    if len(fold_data) == 0:
+        print('No fold metrics found, skipping performance calculation.')
+        return
     dice_folds = []
     precision_folds = []
     recall_folds = []
