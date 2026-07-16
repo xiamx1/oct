@@ -113,6 +113,9 @@ def get_pred_masks(root_dir, n_folds=6):
 def compute_metrics(save_dir, pred_masks, gt_masks, csv_name='metrics'):
     if isinstance(gt_masks, str):
         gt_masks = get_gt_masks(gt_masks)
+    if len(pred_masks) == 0:
+        print('No predicted masks found, skipping {}.'.format(csv_name))
+        return
 
     dice_list = []
     area_pred_list = []
